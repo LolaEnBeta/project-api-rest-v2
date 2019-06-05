@@ -1,5 +1,7 @@
 from flask import Flask, jsonify
 
+project_counter_id = 2
+
 projects = [
     {
         "Name": "Project one",
@@ -20,6 +22,12 @@ def index():
 @app.route("/projects", methods=["GET"])
 def get_projects():
     return jsonify({"projects": projects})
+
+@app.route("/projects/<int:id>", methods=["GET"])
+def get_project_by_id(id):
+    for project in projects:
+        if project["id"] == id:
+            return jsonify({"project": project})
 
 if __name__ == "__main__":
     app.run(debug=True)
