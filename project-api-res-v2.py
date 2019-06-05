@@ -5,11 +5,11 @@ project_counter_id = 2
 
 projects = [
     {
-        "Name": "Project one",
+        "name": "Project one",
         "id": 1
     },
     {
-        "Name": "Project two",
+        "name": "Project two",
         "id": 2
     }
 ]
@@ -49,6 +49,14 @@ def create_a_project():
 @app.errorhandler(400)
 def bad_request(error):
     return make_response(jsonify({"error": "Bad request"}), 400)
+
+@app.route("/projects/<int:id>", methods=["PUT"])
+def modify_project_by_id(id):
+    for project in projects:
+        if project["id"] == id:
+            project["name"] = request.json.get("name", project["name"])
+            return jsonify({"project_modify": project})
+    abort(404)
 
 if __name__ == "__main__":
     app.run(debug=True)
