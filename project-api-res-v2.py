@@ -1,38 +1,14 @@
 from flask import Flask, jsonify, abort, make_response, request
 from Project import Project
+from Task import Task
 
 project_counter_id = 2
 task_counter_id = 3
 
-projects = [
-    {
-        "name": "Project one",
-        "id": 1,
-        "tasks": [
-            {
-                "task_name": "first task",
-                "task_id": 1,
-                "description": "blabla"
-            },
-            {
-                "task_name": "second task",
-                "task_id": 2,
-                "description": "things"
-            }
-        ]
-    },
-    {
-        "name": "Project two",
-        "id": 2,
-        "tasks": [
-            {
-                "task_name": "third task",
-                "task_id": 3,
-                "description": "more things"
-            }
-        ]
-    }
-]
+projects = []
+projects.append(Project(1, "name"))
+projects.append(Project(2, "name"))
+projects.append(Project(3, "name"))
 
 app = Flask(__name__)
 
@@ -42,13 +18,16 @@ def index():
 
 @app.route("/projects", methods=["GET"])
 def get_projects():
-    return jsonify({"projects": projects})
+    project_list = []
+    for project in projects:
+        project_list.append(project.to_json())
+    return jsonify({"projects": project_list})
 
 @app.route("/projects/<int:id>", methods=["GET"])
 def get_project_by_id(id):
     for project in projects:
-        if project["id"] == id:
-            return jsonify({"project": project})
+        if project.id == id:
+            return jsonify({"project": project.to_json()})
     abort(404)
 
 @app.errorhandler(404)
@@ -63,8 +42,9 @@ def create_a_project():
     project_counter_id += 1
     name = request.json.get("name")
     project = Project(project_counter_id, name)
-    projects.append(project.to_json())
-    return jsonify({"projects": projects})
+    projects.append(project)
+    projects_json = [project.to_json() for project in projects]
+    return jsonify({"projects": projects_json})
 
 @app.errorhandler(400)
 def bad_request(error):
@@ -73,15 +53,15 @@ def bad_request(error):
 @app.route("/projects/<int:id>", methods=["PUT"])
 def modify_project_by_id(id):
     for project in projects:
-        if project["id"] == id:
-            project["name"] = request.json.get("name", project["name"])
-            return jsonify({"project_modify": project})
+        if project.id == id:
+            project.name = request.json.get("name", project.name)
+            return jsonify({"project_modify": project.to_json()})
     abort(404)
 
 @app.route("/projects/<int:id>", methods=["DELETE"])
 def delete_project_by_id(id):
     for project in projects:
-        if project["id"] == id:
+        if project.id == id:
             projects.remove(project)
             return jsonify({"project": "Deleted"})
     abort(404)
@@ -90,14 +70,14 @@ def delete_project_by_id(id):
 def get_tasks():
     all_tasks = []
     for project in projects:
-        all_tasks.append(project["tasks"])
+        all_tasks.append(project.tasks)
     return jsonify({"tasks": all_tasks})
 
 @app.route("/projects/<int:id>/tasks", methods=["GET"])
 def get_tasks_from_project_by_id(id):
     for project in projects:
-        if project["id"] == id:
-            return jsonify({"tasks": project["tasks"]})
+        if project.id == id:
+            return jsonify({"tasks": project.tasks})
     abort(404)
 
 if __name__ == "__main__":
