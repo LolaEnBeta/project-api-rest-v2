@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, abort, make_response
+from flask import Flask, jsonify, abort, make_response, request
 from Project import Project
 
 project_counter_id = 2
@@ -34,6 +34,16 @@ def get_project_by_id(id):
 @app.errorhandler(404)
 def not_found(error):
     return make_response(jsonify({"error": "Project not found"}), 404)
+
+@app.route("/projects", methods=["POST"])
+def create_a_project():
+    global project_counter_id
+
+    project_counter_id += 1
+    name = request.json.get("name")
+    project = Project(project_counter_id, name)
+    projects.append(project.to_json())
+    return jsonify({"projects": projects})
 
 if __name__ == "__main__":
     app.run(debug=True)
