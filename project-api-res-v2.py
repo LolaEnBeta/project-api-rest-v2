@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, abort, make_response
 
 project_counter_id = 2
 
@@ -28,6 +28,11 @@ def get_project_by_id(id):
     for project in projects:
         if project["id"] == id:
             return jsonify({"project": project})
+    abort(404)
+
+@app.errorhandler(404)
+def not_found(error):
+    return make_response(jsonify({"error": "Project not found"}), 404)
 
 if __name__ == "__main__":
     app.run(debug=True)
