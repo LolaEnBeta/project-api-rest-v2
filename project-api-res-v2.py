@@ -7,12 +7,29 @@ projects = [
     {
         "name": "Project one",
         "id": 1,
-        "tasks": []
+        "tasks": [
+            {
+                "task_name": "first task",
+                "task_id": 1,
+                "description": "blabla"
+            },
+            {
+                "task_name": "second task",
+                "task_id": 2,
+                "description": "things"
+            }
+        ]
     },
     {
         "name": "Project two",
         "id": 2,
-        "tasks": []
+        "tasks": [
+            {
+                "task_name": "third task",
+                "task_id": 3,
+                "description": "more things"
+            }
+        ]
     }
 ]
 
@@ -67,6 +84,13 @@ def delete_project_by_id(id):
             projects.remove(project)
             return jsonify({"project": "Deleted"})
     abort(404)
+
+@app.route("/projects/tasks", methods=["GET"])
+def get_tasks():
+    all_tasks = []
+    for project in projects:
+        all_tasks.append(project["tasks"])
+    return jsonify({"tasks": all_tasks})
 
 if __name__ == "__main__":
     app.run(debug=True)
