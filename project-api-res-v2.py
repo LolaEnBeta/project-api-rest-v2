@@ -38,12 +38,17 @@ def not_found(error):
 @app.route("/projects", methods=["POST"])
 def create_a_project():
     global project_counter_id
-
+    if not "name" in request.json:
+        abort(400)
     project_counter_id += 1
     name = request.json.get("name")
     project = Project(project_counter_id, name)
     projects.append(project.to_json())
     return jsonify({"projects": projects})
+
+@app.errorhandler(400)
+def bad_request(error):
+    return make_response(jsonify({"error": "Bad request"}), 400)
 
 if __name__ == "__main__":
     app.run(debug=True)
