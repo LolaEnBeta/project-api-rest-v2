@@ -2,6 +2,7 @@ from flask import Flask, jsonify, abort, make_response, request
 from Project import Project
 
 project_counter_id = 2
+task_counter_id = 3
 
 projects = [
     {
@@ -91,6 +92,13 @@ def get_tasks():
     for project in projects:
         all_tasks.append(project["tasks"])
     return jsonify({"tasks": all_tasks})
+
+@app.route("/projects/<int:id>/tasks", methods=["GET"])
+def get_tasks_from_project_by_id(id):
+    for project in projects:
+        if project["id"] == id:
+            return jsonify({"tasks": project["tasks"]})
+    abort(404)
 
 if __name__ == "__main__":
     app.run(debug=True)
