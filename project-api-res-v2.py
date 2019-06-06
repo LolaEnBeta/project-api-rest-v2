@@ -98,5 +98,15 @@ def create_task_in_project(id):
             project.add_task(task)
             return jsonify({"task_added": task.to_json()})
 
+@app.route("/projects/<int:id>/tasks/<int:task_id>", methods=["DELETE"])
+def remove_task_by_id(id, task_id):
+    for project in projects:
+        if project.id == id:
+            for task in project.tasks:
+                if task.id == task_id:
+                    project.tasks.remove(task)
+                    return jsonify({"task": "Deleted"})
+    abort(404)
+
 if __name__ == "__main__":
     app.run(debug=True)
