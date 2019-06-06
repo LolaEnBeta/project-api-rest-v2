@@ -6,9 +6,9 @@ project_counter_id = 3
 task_counter_id = 0
 
 projects = []
-projects.append(Project(1, "name"))
-projects.append(Project(2, "name"))
-projects.append(Project(3, "name"))
+projects.append(Project(1, "name1"))
+projects.append(Project(2, "name2"))
+projects.append(Project(3, "name3"))
 
 app = Flask(__name__)
 
@@ -25,14 +25,13 @@ def get_projects():
 
 @app.route("/projects/<int:id>", methods=["GET"])
 def get_project_by_id(id):
-    for project in projects:
-        if project.id == id:
-            return jsonify({"project": project.to_json()})
+    project = select_project_by_id(id)
+    return jsonify({"project": project.to_json()})
     abort(404)
 
 @app.errorhandler(404)
 def not_found(error):
-    return make_response(jsonify({"error": "Project not found"}), 404)
+    return make_response(jsonify({"error": "Not found"}), 404)
 
 @app.route("/projects", methods=["POST"])
 def create_a_project():
@@ -52,18 +51,16 @@ def bad_request(error):
 
 @app.route("/projects/<int:id>", methods=["PUT"])
 def modify_project_by_id(id):
-    for project in projects:
-        if project.id == id:
-            project.name = request.json.get("name", project.name)
-            return jsonify({"project_modified": project.to_json()})
+    project = select_project_by_id(id)
+    project.name = request.json.get("name", project.name)
+    return jsonify({"project_modified": project.to_json()})
     abort(404)
 
 @app.route("/projects/<int:id>", methods=["DELETE"])
 def delete_project_by_id(id):
-    for project in projects:
-        if project.id == id:
-            projects.remove(project)
-            return jsonify({"project": "Deleted"})
+    project = select_project_by_id(id)
+    projects.remove(project)
+    return jsonify({"project": "Deleted"})
     abort(404)
 
 @app.route("/projects/tasks", methods=["GET"])
@@ -77,46 +74,54 @@ def get_tasks():
 @app.route("/projects/<int:id>/tasks", methods=["GET"])
 def get_tasks_from_project_by_id(id):
     task_list = []
-    for project in projects:
-        if project.id == id:
-            for task in project.tasks:
-                task_list.append(task.to_json())
-            return jsonify({"tasks": task_list})
-    abort(404)
+
+    project = select_project_by_id(id)
+    if not project:
+        abort(404)
+
+    for task in project.tasks:
+        task_list.append(task.to_json())
+    return jsonify({"tasks": task_list})
 
 @app.route("/projects/<int:id>/tasks", methods=["POST"])
 def create_task_in_project(id):
     global task_counter_id
     if not "task_name" in request.json or not "description" in request.json:
         abort(400)
-    for project in projects:
-        if project.id == id:
-            task_counter_id += 1
-            task_name = request.json.get("task_name")
-            description = request.json.get("description")
-            task = Task(task_counter_id, task_name, description)
-            project.add_task(task)
-            return jsonify({"task_added": task.to_json()})
+
+    project = select_project_by_id(id)
+    task_counter_id += 1
+    task_name = request.json.get("task_name")
+    description = request.json.get("description")
+    task = Task(task_counter_id, task_name, description)
+    project.add_task(task)
+    return jsonify({"task_added": task.to_json()})
 
 @app.route("/projects/<int:id>/tasks/<int:task_id>", methods=["DELETE"])
 def remove_task_by_id(id, task_id):
-    for project in projects:
-        if project.id == id:
-            for task in project.tasks:
-                if task.id == task_id:
-                    project.tasks.remove(task)
-                    return jsonify({"task": "Deleted"})
+    project = select_project_by_id(id)
+    task = select_task_by_id(project, task_id)
+    project.tasks.remove(task)
+    return jsonify({"task": "Deleted"})
     abort(404)
 
 @app.route("/projects/<int:id>/tasks/<int:task_id>", methods=["PUT"])
 def modify_task_by_id(id, task_id):
+    project = select_project_by_id(id)
+    task = select_task_by_id(project, task_id)
+    task.task_name = request.json.get("task_name", task.task_name)
+    task.description = request.json.get("description", task.description)
+    return jsonify({"task_modified": task.to_json()})
+
+def select_project_by_id(id):
     for project in projects:
         if project.id == id:
-            for task in project.tasks:
-                if task.id == task_id:
-                    task.task_name = request.json.get("task_name", task.task_name)
-                    task.description = request.json.get("description", task.description)
-                    return jsonify({"task_modified": task.to_json()})
+            return project
+
+def select_task_by_id(project, task_id):
+    for task in project.tasks:
+        if task.id == task_id:
+            return task
 
 if __name__ == "__main__":
     app.run(debug=True)
