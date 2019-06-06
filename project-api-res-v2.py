@@ -55,7 +55,7 @@ def modify_project_by_id(id):
     for project in projects:
         if project.id == id:
             project.name = request.json.get("name", project.name)
-            return jsonify({"project_modify": project.to_json()})
+            return jsonify({"project_modified": project.to_json()})
     abort(404)
 
 @app.route("/projects/<int:id>", methods=["DELETE"])
@@ -107,6 +107,16 @@ def remove_task_by_id(id, task_id):
                     project.tasks.remove(task)
                     return jsonify({"task": "Deleted"})
     abort(404)
+
+@app.route("/projects/<int:id>/tasks/<int:task_id>", methods=["PUT"])
+def modify_task_by_id(id, task_id):
+    for project in projects:
+        if project.id == id:
+            for task in project.tasks:
+                if task.id == task_id:
+                    task.task_name = request.json.get("task_name", task.task_name)
+                    task.description = request.json.get("description", task.description)
+                    return jsonify({"task_modified": task.to_json()})
 
 if __name__ == "__main__":
     app.run(debug=True)
