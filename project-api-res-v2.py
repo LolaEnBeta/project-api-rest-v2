@@ -2,8 +2,8 @@ from flask import Flask, jsonify, abort, make_response, request
 from Project import Project
 from Task import Task
 
-project_counter_id = 2
-task_counter_id = 3
+project_counter_id = 3
+task_counter_id = 0
 
 projects = []
 projects.append(Project(1, "name"))
@@ -70,15 +70,33 @@ def delete_project_by_id(id):
 def get_tasks():
     all_tasks = []
     for project in projects:
-        all_tasks.append(project.tasks)
+        for task in project.tasks:
+            all_tasks.append(task.to_json())
     return jsonify({"tasks": all_tasks})
 
 @app.route("/projects/<int:id>/tasks", methods=["GET"])
 def get_tasks_from_project_by_id(id):
+    task_list = []
     for project in projects:
         if project.id == id:
-            return jsonify({"tasks": project.tasks})
+            for task in project.tasks:
+                task_list.append(task.to_json())
+            return jsonify({"tasks": task_list})
     abort(404)
+
+@app.route("/projects/<int:id>/tasks", methods=["POST"])
+def create_task_in_project(id):
+    global task_counter_id
+    if not "task_name" in request.json or not "description" in request.json:
+        abort(400)
+    for project in projects:
+        if project.id == id:
+            task_counter_id += 1
+            task_name = request.json.get("task_name")
+            description = request.json.get("description")
+            task = Task(task_counter_id, task_name, description)
+            project.add_task(task)
+            return jsonify({"task_added": task.to_json()})
 
 if __name__ == "__main__":
     app.run(debug=True)

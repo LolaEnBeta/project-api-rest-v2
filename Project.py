@@ -5,6 +5,9 @@ class Project(object):
         self.name = name
         self.tasks = []
 
+    def add_task(self, task):
+        self.tasks.append(task)
+
     def to_json(self):
         return {
             "name": self.name,
